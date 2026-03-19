@@ -254,7 +254,24 @@ document.getElementById('auth-btn').onclick=async()=>{
   document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('auth-btn').click();});
 });
 document.getElementById('btn-logout').onclick=async()=>{await sb.auth.signOut();location.reload();};
-sb.auth.getSession().then(({data})=>{if(data.session){user=data.session.user;startApp();}});
+// URL 해시에서 에러 제거 후 세션 처리
+if(window.location.hash.includes('error')){
+  history.replaceState(null,'',window.location.pathname);
+}
+
+sb.auth.onAuthStateChange((event,session)=>{
+  if(session&&!user){
+    user=session.user;
+    startApp();
+  }
+});
+
+sb.auth.getSession().then(({data})=>{
+  if(data.session&&!user){
+    user=data.session.user;
+    startApp();
+  }
+});
 
 async function startApp(){
   document.getElementById('auth-screen').style.display='none';
@@ -317,8 +334,14 @@ document.getElementById('modal-title').addEventListener('keydown',e=>{if(e.key==
 document.getElementById('modal-confirm').onclick=async()=>{
   const title=document.getElementById('modal-title').value.trim()||'제목 없음';
   document.getElementById('modal-bg').classList.remove('show');
+  // 항상 최신 세션에서 user 가져오기
+  const{data:sessionData}=await sb.auth.getSession();
+  const currentUser=sessionData?.session?.user;
+  if(!currentUser){alert('로그인이 필요해요. 페이지를 새로고침 후 다시 로그인해주세요.');return;}
+  user=currentUser;
   const defaultData={nodes:[{id:'n1',label:title,x:200,y:200,pid:null,fill:'#BFDBFE',tc:'#1e40af',collapsed:false}],nid:2};
-  const{data}=await sb.from('mindmaps').insert({user_id:user.id,title,data:defaultData}).select().single();
+  const{data,error}=await sb.from('mindmaps').insert({user_id:user.id,title,data:defaultData}).select().single();
+  if(error){alert('저장 오류: '+error.message);return;}
   maps.unshift(data);renderMapList();loadMap(data.id);
 };
 
