@@ -410,7 +410,7 @@ document.getElementById('ai-generate').onclick=async()=>{
 - 라벨은 15자 이내로 핵심만
 - 소분류 하위에 세부항목 추가 가능 (최대 3단계 깊이)
 - 반드시 한국어로`;
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
